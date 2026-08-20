@@ -42,6 +42,15 @@ export const OrbitalVisualizer: React.FC<OrbitalVisualizerProps> = ({
   const marsX = cx + marsRadius * Math.cos(marsAngleRad);
   const marsY = cy + marsRadius * Math.sin(marsAngleRad);
 
+  // 3D Isometric Projection Transformation
+  const isoRx = 45;
+  const isoRy = 22;
+  const earthX3d = cx + earthRadius * Math.cos(earthAngleRad);
+  const earthY3d = cy + (earthRadius * Math.sin(earthAngleRad) * isoRy) / isoRx;
+
+  const marsX3d = cx + marsRadius * Math.cos(marsAngleRad);
+  const marsY3d = cy + (marsRadius * Math.sin(marsAngleRad) * isoRy) / isoRx;
+
   return (
     <div className="bg-space-900 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-4 font-mono">
       
@@ -85,43 +94,69 @@ export const OrbitalVisualizer: React.FC<OrbitalVisualizerProps> = ({
         {/* Left Column: Interactive Orbit Map */}
         <div className="lg:col-span-2 bg-space-950 rounded-xl p-4 border border-slate-800/90 flex flex-col items-center justify-center relative min-h-[300px]">
           
-          <svg viewBox="0 0 300 300" className="w-full max-w-[340px] h-auto">
-            {/* Sun Exclusion Zone (<3.0 degrees) */}
-            <circle cx={cx} cy={cy} r="28" fill="rgba(239, 68, 68, 0.08)" stroke="rgba(239, 68, 68, 0.3)" strokeDasharray="3 3" />
-            
-            {/* Sun Center */}
-            <circle cx={cx} cy={cy} r="14" fill="#EAB308" className="animate-pulse" />
-            <circle cx={cx} cy={cy} r="18" fill="rgba(234, 179, 8, 0.2)" />
+          {activeTab === '2d' ? (
+            <svg viewBox="0 0 300 300" className="w-full max-w-[340px] h-auto">
+              {/* Sun Exclusion Zone (<3.0 degrees) */}
+              <circle cx={cx} cy={cy} r="28" fill="rgba(239, 68, 68, 0.08)" stroke="rgba(239, 68, 68, 0.3)" strokeDasharray="3 3" />
+              
+              {/* Sun Center */}
+              <circle cx={cx} cy={cy} r="14" fill="#EAB308" className="animate-pulse" />
+              <circle cx={cx} cy={cy} r="18" fill="rgba(234, 179, 8, 0.2)" />
 
-            {/* Earth Orbit */}
-            <circle cx={cx} cy={cy} r={earthRadius} fill="none" stroke="#1E293B" strokeWidth="1.5" strokeDasharray="4 4" />
-            
-            {/* Mars Orbit */}
-            <circle cx={cx} cy={cy} r={marsRadius} fill="none" stroke="#1E293B" strokeWidth="1.5" strokeDasharray="4 4" />
+              {/* Earth Orbit */}
+              <circle cx={cx} cy={cy} r={earthRadius} fill="none" stroke="#1E293B" strokeWidth="1.5" strokeDasharray="4 4" />
+              
+              {/* Mars Orbit */}
+              <circle cx={cx} cy={cy} r={marsRadius} fill="none" stroke="#1E293B" strokeWidth="1.5" strokeDasharray="4 4" />
 
-            {/* RF Beam Vector */}
-            {isConjunction ? (
-              // Solar Blackout: Broken Scattered Signal Beam
-              <g>
-                <line x1={earthX} y1={earthY} x2={cx} y2={cy} stroke="#EF4444" strokeWidth="2" strokeDasharray="2 4" className="animate-pulse" />
-                <line x1={cx} y1={cy} x2={marsX} y2={marsY} stroke="#EF4444" strokeWidth="2" strokeDasharray="2 4" className="animate-pulse" />
-              </g>
-            ) : (
-              // Normal Signal Vector: Phosphor Cyan Carrier Link
-              <g>
-                <line x1={earthX} y1={earthY} x2={marsX} y2={marsY} stroke="#00E5FF" strokeWidth="2" strokeOpacity="0.8" />
-                <circle cx={(earthX + marsX) / 2} cy={(earthY + marsY) / 2} r="3" fill="#00E5FF" className="animate-ping" />
-              </g>
-            )}
+              {/* RF Beam Vector */}
+              {isConjunction ? (
+                // Solar Blackout: Broken Scattered Signal Beam
+                <g>
+                  <line x1={earthX} y1={earthY} x2={cx} y2={cy} stroke="#EF4444" strokeWidth="2" strokeDasharray="2 4" className="animate-pulse" />
+                  <line x1={cx} y1={cy} x2={marsX} y2={marsY} stroke="#EF4444" strokeWidth="2" strokeDasharray="2 4" className="animate-pulse" />
+                </g>
+              ) : (
+                // Normal Signal Vector: Phosphor Cyan Carrier Link
+                <g>
+                  <line x1={earthX} y1={earthY} x2={marsX} y2={marsY} stroke="#00E5FF" strokeWidth="2" strokeOpacity="0.8" />
+                  <circle cx={(earthX + marsX) / 2} cy={(earthY + marsY) / 2} r="3" fill="#00E5FF" className="animate-ping" />
+                </g>
+              )}
 
-            {/* Earth Planet */}
-            <circle cx={earthX} cy={earthY} r="7" fill="#38BDF8" />
-            <text x={earthX + 10} y={earthY + 4} fill="#94A3B8" fontSize="9" className="font-mono font-bold">Earth (1.0 AU)</text>
+              {/* Earth Planet */}
+              <circle cx={earthX} cy={earthY} r="7" fill="#38BDF8" />
+              <text x={earthX + 10} y={earthY + 4} fill="#94A3B8" fontSize="9" className="font-mono font-bold">Earth (1.0 AU)</text>
 
-            {/* Mars Planet */}
-            <circle cx={marsX} cy={marsY} r="6" fill="#EF4444" />
-            <text x={marsX + 10} y={marsY + 4} fill="#FCA5A5" fontSize="9" className="font-mono font-bold">Mars (1.524 AU)</text>
-          </svg>
+              {/* Mars Planet */}
+              <circle cx={marsX} cy={marsY} r="6" fill="#EF4444" />
+              <text x={marsX + 10} y={marsY + 4} fill="#FCA5A5" fontSize="9" className="font-mono font-bold">Mars (1.524 AU)</text>
+            </svg>
+          ) : (
+            <svg viewBox="0 0 300 300" className="w-full max-w-[340px] h-auto">
+              {/* 3D Isometric View */}
+              <ellipse cx={cx} cy={cy} rx="28" ry="14" fill="rgba(239, 68, 68, 0.1)" stroke="rgba(239, 68, 68, 0.4)" strokeDasharray="3 3" />
+              <circle cx={cx} cy={cy} r="14" fill="#EAB308" className="animate-pulse" />
+
+              {/* Tilted Earth Orbit */}
+              <ellipse cx={cx} cy={cy} rx={earthRadius} ry={(earthRadius * isoRy) / isoRx} fill="none" stroke="#00E5FF" strokeWidth="1.5" strokeDasharray="4 4" strokeOpacity="0.6" />
+
+              {/* Tilted Mars Orbit */}
+              <ellipse cx={cx} cy={cy} rx={marsRadius} ry={(marsRadius * isoRy) / isoRx} fill="none" stroke="#EF4444" strokeWidth="1.5" strokeDasharray="4 4" strokeOpacity="0.6" />
+
+              {/* 3D RF Vector Line */}
+              <line x1={earthX3d} y1={earthY3d} x2={marsX3d} y2={marsY3d} stroke={isConjunction ? '#EF4444' : '#00E5FF'} strokeWidth="2.5" />
+              <circle cx={(earthX3d + marsX3d) / 2} cy={(earthY3d + marsY3d) / 2} r="3.5" fill={isConjunction ? '#EF4444' : '#00E5FF'} className="animate-ping" />
+
+              {/* 3D Earth Node */}
+              <circle cx={earthX3d} cy={earthY3d} r="7" fill="#38BDF8" />
+              <text x={earthX3d + 10} y={earthY3d + 4} fill="#94A3B8" fontSize="9" className="font-mono font-bold">Earth 3D Vector</text>
+
+              {/* 3D Mars Node */}
+              <circle cx={marsX3d} cy={marsY3d} r="6" fill="#EF4444" />
+              <text x={marsX3d + 10} y={marsY3d + 4} fill="#FCA5A5" fontSize="9" className="font-mono font-bold">Mars 3D Vector</text>
+            </svg>
+          )}
 
           {/* Map Overlay Badge */}
           <div className="absolute top-3 left-3 bg-space-900/90 border border-slate-800 px-2.5 py-1 rounded-lg text-[10px] text-slate-400">

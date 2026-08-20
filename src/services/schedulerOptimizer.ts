@@ -14,10 +14,10 @@ export const GRID_SCALE = 50;
 
 export const INITIAL_PAYLOADS: DataPayloadItem[] = [
   { id: 'p1', name: 'Emergency Telemetry & Fault Flags', category: 'Emergency', sizeMB: 100, priorityScore: 1, urgencyLevel: 'CRITICAL', timestamp: '00:00', status: 'QUEUED', criticalityScore: 100, deadlineUrgency: 0.99, safetyRelevance: 100 },
-  { id: 'p2', name: 'Critical Spacecraft Status & Health', category: 'Telemetry', sizeMB: 500, priorityScore: 2, urgencyLevel: 'HIGH', timestamp: '02:00', status: 'QUEUED', criticalityScore: 80, deadlineUrgency: 0.85, safetyRelevance: 85 },
-  { id: 'p3', name: 'Navigation & Trajectory Adjustments', category: 'Navigation', sizeMB: 400, priorityScore: 3, urgencyLevel: 'HIGH', timestamp: '04:00', status: 'QUEUED', criticalityScore: 75, deadlineUrgency: 0.70, safetyRelevance: 70 },
-  { id: 'p4', name: 'Rover Scientific Spectrometer Data', category: 'Scientific', sizeMB: 2048, priorityScore: 4, urgencyLevel: 'MEDIUM', timestamp: '07:00', status: 'QUEUED', criticalityScore: 40, deadlineUrgency: 0.40, safetyRelevance: 10 },
-  { id: 'p5', name: 'High-Res Terrain & Orbital Images', category: 'Images', sizeMB: 5120, priorityScore: 5, urgencyLevel: 'LOW', timestamp: '09:00', status: 'QUEUED', criticalityScore: 20, deadlineUrgency: 0.20, safetyRelevance: 5 },
+  { id: 'p2', name: 'Critical Spacecraft Status & Health', category: 'Telemetry', sizeMB: 350, priorityScore: 2, urgencyLevel: 'HIGH', timestamp: '02:00', status: 'QUEUED', criticalityScore: 80, deadlineUrgency: 0.85, safetyRelevance: 85 },
+  { id: 'p3', name: 'Navigation & Trajectory Adjustments', category: 'Navigation', sizeMB: 200, priorityScore: 3, urgencyLevel: 'HIGH', timestamp: '04:00', status: 'QUEUED', criticalityScore: 75, deadlineUrgency: 0.70, safetyRelevance: 70 },
+  { id: 'p4', name: 'Rover Scientific Spectrometer Data', category: 'Scientific', sizeMB: 150, priorityScore: 4, urgencyLevel: 'MEDIUM', timestamp: '07:00', status: 'QUEUED', criticalityScore: 60, deadlineUrgency: 0.60, safetyRelevance: 50 },
+  { id: 'p5', name: 'High-Res Terrain & Orbital Images', category: 'Images', sizeMB: 500, priorityScore: 5, urgencyLevel: 'LOW', timestamp: '09:00', status: 'QUEUED', criticalityScore: 20, deadlineUrgency: 0.20, safetyRelevance: 5 },
 ];
 
 export function calculateItemObjective(item: DataPayloadItem): number {

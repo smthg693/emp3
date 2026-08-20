@@ -8,7 +8,9 @@ import {
   HardDrive, 
   Sparkles, 
   Zap,
-  ShieldCheck
+  ShieldCheck,
+  Send,
+  Check
 } from 'lucide-react';
 
 interface DataSchedulerProps {
@@ -28,7 +30,22 @@ export const DataScheduler: React.FC<DataSchedulerProps> = ({ telemetry }) => {
 
   const handleRunOptimizer = () => {
     setActiveToast('0/1 DP Knapsack Engine executing transmission schedule optimization...');
-    missionStateService.setSynodicMonth(telemetry.synodicMonth);
+    const controller = missionStateService.createDemoController();
+    controller.runDtnOptimizer();
+    setTimeout(() => setActiveToast(null), 3000);
+  };
+
+  const handleStartTransmission = () => {
+    setActiveToast('Initiating DSN transmission for selected DTN outbox bundles...');
+    const controller = missionStateService.createDemoController();
+    controller.startDtnTransmission();
+    setTimeout(() => setActiveToast(null), 3000);
+  };
+
+  const handleConfirmDelivery = () => {
+    setActiveToast('Earth DSN ground station confirmed bundle delivery receipt!');
+    const controller = missionStateService.createDemoController();
+    controller.confirmEarthDelivery();
     setTimeout(() => setActiveToast(null), 3000);
   };
 
@@ -44,7 +61,7 @@ export const DataScheduler: React.FC<DataSchedulerProps> = ({ telemetry }) => {
       )}
 
       {/* Section Header */}
-      <div className="flex items-center justify-between gap-3 border-b border-slate-800/80 pb-3">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800/80 pb-3">
         <div>
           <span className="text-[11px] font-mono text-mars-500 uppercase tracking-wider font-semibold flex items-center gap-1.5">
             <Sliders className="w-3.5 h-3.5" /> Feature 02 — 0/1 DP Knapsack Optimization
@@ -54,18 +71,40 @@ export const DataScheduler: React.FC<DataSchedulerProps> = ({ telemetry }) => {
           </h3>
         </div>
 
-        <button
-          onClick={handleRunOptimizer}
-          disabled={telemetry.isConjunction}
-          className={`px-3.5 py-1.5 rounded-lg text-xs font-mono font-bold flex items-center gap-1.5 shadow-md transition-all ${
-            telemetry.isConjunction
-              ? 'bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700'
-              : 'bg-gradient-to-r from-mars-500 to-orange-600 hover:from-mars-600 hover:to-orange-700 text-white shadow-mars-500/20 active:scale-95'
-          }`}
-        >
-          <Sparkles className="w-3.5 h-3.5 text-amber-200" />
-          <span>Run 0/1 DP Optimizer</span>
-        </button>
+        {/* Action Controls */}
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            onClick={handleRunOptimizer}
+            disabled={telemetry.isConjunction}
+            className={`px-3 py-1.5 rounded-lg text-xs font-mono font-bold flex items-center gap-1.5 shadow-md transition-all ${
+              telemetry.isConjunction
+                ? 'bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700'
+                : 'bg-gradient-to-r from-mars-500 to-orange-600 hover:from-mars-600 hover:to-orange-700 text-white shadow-mars-500/20 active:scale-95'
+            }`}
+          >
+            <Sparkles className="w-3.5 h-3.5 text-amber-200" />
+            <span>Run DP Optimizer</span>
+          </button>
+
+          <button
+            onClick={handleStartTransmission}
+            disabled={telemetry.isConjunction}
+            className={`px-2.5 py-1.5 rounded-lg text-xs font-mono border transition-colors flex items-center gap-1 ${
+              telemetry.isConjunction
+                ? 'bg-slate-800 text-slate-500 border-slate-700 cursor-not-allowed'
+                : 'bg-cyan-500/10 text-cyan-400 border-cyan-500/30 hover:bg-cyan-500/20'
+            }`}
+          >
+            <Send className="w-3 h-3" /> Transmit
+          </button>
+
+          <button
+            onClick={handleConfirmDelivery}
+            className="px-2.5 py-1.5 rounded-lg text-xs font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/20 transition-colors flex items-center gap-1"
+          >
+            <Check className="w-3 h-3" /> Confirm Delivery
+          </button>
+        </div>
       </div>
 
       {/* Baseline Greedy vs Kepler 0/1 DP Comparison Card */}

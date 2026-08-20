@@ -91,6 +91,14 @@ export const AutonomousEmergencyHandler: React.FC<AutonomousEmergencyHandlerProp
       step++;
       if (step <= 5) {
         setActiveStep(step);
+        const controller = missionStateService.createDemoController();
+        if (step === 2) {
+          controller.runAnomalyDetection();
+        } else if (step === 3) {
+          controller.runSafetyValidation();
+        } else if (step === 4) {
+          controller.executeLocalAction();
+        }
       } else {
         clearInterval(interval);
         setIsExecuting(false);

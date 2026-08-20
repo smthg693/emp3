@@ -3,8 +3,9 @@ import { runKeplerOptimizer } from './schedulerOptimizer';
 
 export const INITIAL_DTN_QUEUE: DtnBundle[] = [
   { id: 'b1', priority: 1, sizeMb: 100, createdAt: 1700000000000, deadlineMin: 10, criticality: 100, status: 'BUFFERED', payloadName: 'Emergency Telemetry & Fault Flags' },
-  { id: 'b2', priority: 2, sizeMb: 500, createdAt: 1700000000000, deadlineMin: 30, criticality: 80, status: 'BUFFERED', payloadName: 'Critical Spacecraft Status & Health' },
-  { id: 'b3', priority: 3, sizeMb: 400, createdAt: 1700000000000, deadlineMin: 60, criticality: 75, status: 'BUFFERED', payloadName: 'Navigation & Trajectory Adjustments' },
+  { id: 'b2', priority: 2, sizeMb: 350, createdAt: 1700000000000, deadlineMin: 30, criticality: 80, status: 'BUFFERED', payloadName: 'Critical Spacecraft Status & Health' },
+  { id: 'b3', priority: 3, sizeMb: 200, createdAt: 1700000000000, deadlineMin: 60, criticality: 75, status: 'BUFFERED', payloadName: 'Navigation & Trajectory Adjustments' },
+  { id: 'b4', priority: 4, sizeMb: 150, createdAt: 1700000000000, deadlineMin: 90, criticality: 60, status: 'BUFFERED', payloadName: 'Rover Scientific Spectrometer Data' },
 ];
 
 class DtnQueueService {
@@ -75,10 +76,21 @@ class DtnQueueService {
       return [...this.queue];
     }
 
+    // Revert TRANSMITTING bundles to BUFFERED if total size of current TRANSMITTING bundles exceeds new capacityMb
+    const currentTxBytes = this.queue.filter(b => b.status === 'TRANSMITTING').reduce((sum, b) => sum + b.sizeMb, 0);
+    const isExceedingCapacity = currentTxBytes > capacityMb;
+
+    if (isExceedingCapacity) {
+      this.queue = this.queue.map(b => (b.status === 'TRANSMITTING' ? { ...b, status: 'BUFFERED' } : b));
+    }
+
     const sentIds = this.selectTransmissionCandidates(capacityMb);
 
     this.queue = this.queue.map(b => {
-      if (b.status === 'TRANSMITTING' || b.status === 'DELIVERED') {
+      if (b.status === 'DELIVERED') {
+        return b;
+      }
+      if (b.status === 'TRANSMITTING' && !isExceedingCapacity) {
         return b;
       }
       if (sentIds.has(b.id)) {
