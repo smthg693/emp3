@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { TelemetryData } from '../types/mission';
+import { missionStateService } from '../services/missionStateService';
 import { 
   ShieldAlert, 
   AlertTriangle, 
@@ -77,6 +78,14 @@ export const AutonomousEmergencyHandler: React.FC<AutonomousEmergencyHandlerProp
     setActiveStep(1);
     setIsExecuting(true);
 
+    if (fault.id === 'fault-1') {
+      missionStateService.setScenario('THERMAL_ANOMALY');
+    } else if (fault.id === 'fault-2') {
+      missionStateService.setScenario('RF_ANOMALY');
+    } else if (fault.id === 'fault-3') {
+      missionStateService.setScenario('VOLTAGE_ANOMALY');
+    }
+
     let step = 1;
     const interval = setInterval(() => {
       step++;
@@ -90,20 +99,19 @@ export const AutonomousEmergencyHandler: React.FC<AutonomousEmergencyHandlerProp
   };
 
   return (
-    <div className="bg-space-900 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-4 flex flex-col justify-between">
+    <div className="bg-space-900 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-4 flex flex-col justify-between font-mono text-xs">
       
-      {/* Section Header with Horizontal Simulation Buttons */}
+      {/* Section Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800/80 pb-3">
         <div>
           <span className="text-[11px] font-mono text-red-400 uppercase tracking-wider font-semibold flex items-center gap-1.5">
-            <ShieldAlert className="w-3.5 h-3.5" /> Feature 03 — Spacecraft Autonomy
+            <ShieldAlert className="w-3.5 h-3.5" /> Feature 03 — Spacecraft Autonomy Guardrail
           </span>
           <h3 className="text-base font-bold font-heading text-white mt-0.5">
             Autonomous Emergency Response Pipeline
           </h3>
         </div>
 
-        {/* Clean Horizontal Simulator Buttons */}
         <div className="flex items-center gap-1.5 self-start sm:self-auto">
           {presetFaults.map((fault) => (
             <button
@@ -179,7 +187,7 @@ export const AutonomousEmergencyHandler: React.FC<AutonomousEmergencyHandlerProp
       </div>
 
       {/* Scenario Log Detail Card */}
-      <div className="bg-space-950 p-4 rounded-xl border border-slate-800 space-y-3 font-mono text-xs">
+      <div className="bg-space-950 p-4 rounded-xl border border-slate-800 space-y-3">
         <div className="flex items-center justify-between border-b border-slate-800 pb-2">
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-red-500 animate-ping" />
@@ -209,7 +217,7 @@ export const AutonomousEmergencyHandler: React.FC<AutonomousEmergencyHandlerProp
           <span>
             <strong>DTN Report:</strong> Stored in outbox for Earth transmission in next window.
           </span>
-          <span className="text-earth-400 font-semibold shrink-0 ml-2">
+          <span className="text-earth-400 font-semibold shrink-0 ml-2 tabular-nums">
             1-Way Latency: +{telemetry.oneWayLatencyMin.toFixed(1)}m
           </span>
         </div>

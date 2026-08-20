@@ -1,18 +1,20 @@
 import React from 'react';
 import { TelemetryData } from '../types/mission';
+import { missionStateService } from '../services/missionStateService';
 import { 
   Radio, 
   Orbit, 
-  ShieldAlert, 
-  Activity, 
-  Cpu, 
-  Network, 
   Sliders, 
+  ShieldAlert, 
+  Brain, 
+  Network, 
   AlertTriangle,
   Clock,
   BookOpen,
   SignalHigh,
-  Sparkles
+  Zap,
+  ShieldCheck,
+  CheckCircle2
 } from 'lucide-react';
 
 interface HeaderProps {
@@ -28,139 +30,146 @@ export const Header: React.FC<HeaderProps> = ({
   activeTab,
   setActiveTab,
   simulationMode,
-  setSimulationMode,
+  setSimulationMode
 }) => {
-  const tabs = [
-    { id: 'dashboard', label: 'Overview', icon: Activity },
-    { id: 'orbital', label: 'Orbital AI', icon: Orbit },
-    { id: 'scheduler', label: 'Queue Optimizer', icon: Sliders },
-    { id: 'autonomy', label: 'Autonomy', icon: ShieldAlert },
-    { id: 'advisor', label: 'AI Advisor', icon: Cpu },
-    { id: 'dtn', label: 'DSN / DTN', icon: Network },
+  const state = missionStateService.getState();
+  const opState = state.spacecraftOperationalState;
+
+  const navItems = [
+    { id: 'dashboard', label: 'Overview', icon: Orbit },
+    { id: 'orbital', label: 'Orbital Physics', icon: Radio },
+    { id: 'scheduler', label: 'Data Scheduler', icon: Sliders },
+    { id: 'autonomy', label: 'Emergency Autonomy', icon: ShieldAlert },
+    { id: 'advisor', label: 'TF.js Advisor', icon: Brain },
+    { id: 'dtn', label: 'DSN / DTN Architecture', icon: Network },
     { id: 'research', label: 'Research', icon: BookOpen },
   ];
 
   return (
-    <header className="sticky top-0 z-50 bg-space-950/90 backdrop-blur-xl border-b border-slate-800/80 shadow-md">
-      {/* Top Banner for Conjunction or Emergency */}
-      {telemetry.isConjunction && (
-        <div className="bg-amber-600/90 text-white text-[11px] font-mono py-1 px-4 flex items-center justify-center gap-2 animate-pulse">
-          <AlertTriangle className="w-3.5 h-3.5 text-amber-200" />
-          <span className="font-bold">SOLAR CONJUNCTION:</span>
-          <span>Sun-Earth-Mars Alignment &lt; 3° — Radio Blackout ~13 Days. Autonomous DTN Active.</span>
+    <header className="bg-space-900/95 border-b border-slate-800/90 backdrop-blur-md sticky top-0 z-50">
+      
+      {/* Top Mission Critical Telemetry Bar */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5 border-b border-slate-800/60 flex flex-wrap items-center justify-between gap-3 text-xs font-mono">
+        
+        {/* Logo & Brand */}
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-mars-500 to-orange-600 flex items-center justify-center shadow-lg shadow-mars-500/20">
+            <Orbit className="w-5 h-5 text-white animate-spin-slow" />
+          </div>
+          <div>
+            <span className="font-bold text-white tracking-wider uppercase font-heading text-sm block leading-none">
+              KEPLER'S CREW
+            </span>
+            <span className="text-[10px] text-slate-400 font-mono tracking-tight">
+              Earth–Mars Deep Space Mission Control
+            </span>
+          </div>
         </div>
-      )}
 
-      {simulationMode === 'EMERGENCY' && !telemetry.isConjunction && (
-        <div className="bg-red-600/90 text-white text-[11px] font-mono py-1 px-4 flex items-center justify-center gap-2 animate-pulse">
-          <ShieldAlert className="w-3.5 h-3.5 text-red-200" />
-          <span className="font-bold">SIMULATION MODE:</span>
-          <span>Subsystem Anomaly Active. Round-trip delay: {telemetry.roundTripLatencyMin.toFixed(1)} min. Executing safety autonomy.</span>
+        {/* Global Operational State Badge */}
+        <div className="flex items-center gap-2 bg-space-950 px-3 py-1 rounded-xl border border-slate-800">
+          <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Operational State:</span>
+          <span className={`text-[11px] font-bold font-mono px-2 py-0.5 rounded border ${
+            opState === 'NOMINAL' || opState === 'STABILIZED'
+              ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
+              : opState === 'THERMAL_MITIGATION'
+              ? 'bg-mars-500/20 text-mars-400 border-mars-500/40 animate-pulse'
+              : opState === 'POWER_CONSERVATION'
+              ? 'bg-amber-500/20 text-amber-400 border-amber-500/40 animate-pulse'
+              : 'bg-indigo-500/20 text-indigo-400 border-indigo-500/40 animate-pulse'
+          }`}>
+            {opState}
+          </span>
         </div>
-      )}
 
-      {/* Natural, Sleek Main Header Bar */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        {/* Live Physics Telemetry Badges */}
+        <div className="flex flex-wrap items-center gap-3 text-[11px] font-mono">
           
-          {/* Natural Logo & Branding */}
-          <div className="flex items-center gap-3">
-            {/* Sleek Orbit Badge Icon */}
-            <div className="w-9 h-9 rounded-xl bg-space-900 border border-slate-800 flex items-center justify-center shadow-inner group hover:border-mars-500/50 transition-colors">
-              <Radio className="w-4 h-4 text-mars-500 group-hover:scale-110 transition-transform" />
-            </div>
-
-            <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-base font-bold text-white font-heading tracking-tight">
-                  Earth–Mars Mission Control
-                </h1>
-                <span className="px-1.5 py-0.2 rounded-full text-[10px] font-mono bg-mars-500/10 text-mars-400 border border-mars-500/20 font-semibold">
-                  Kepler's Crew
-                </span>
-              </div>
-              <p className="text-[11px] font-mono text-slate-400">
-                Deep-Space AI System <span className="text-slate-600">•</span> v2.4
-              </p>
-            </div>
+          {/* Distance */}
+          <div className="flex items-center gap-1.5 bg-space-950 px-2.5 py-1 rounded-lg border border-slate-800">
+            <span className="text-slate-500 uppercase">Distance:</span>
+            <span className="text-cyan-400 font-bold tabular-nums">
+              {telemetry.distanceKm.toFixed(1)} M km
+            </span>
+            <span className="text-[9px] text-slate-500">({(telemetry.distanceKm / 149.6).toFixed(2)} AU)</span>
           </div>
 
-          {/* Compact Telemetry Widgets */}
-          <div className="flex items-center gap-2 sm:gap-3 font-mono text-[11px]">
-            <div className="bg-space-900/90 border border-slate-800/80 px-2.5 py-1 rounded-lg flex items-center gap-1.5 shadow-sm">
-              <span className="text-slate-500 uppercase text-[9px]">Dist</span>
-              <span className="text-earth-400 font-bold">{telemetry.distanceKm.toFixed(1)}M km</span>
-            </div>
+          {/* Latency */}
+          <div className="flex items-center gap-1.5 bg-space-950 px-2.5 py-1 rounded-lg border border-slate-800">
+            <Clock className="w-3.5 h-3.5 text-mars-500" />
+            <span className="text-slate-500 uppercase">Delay (1-Way / RTT):</span>
+            <span className="text-mars-400 font-bold tabular-nums">
+              +{telemetry.oneWayLatencyMin.toFixed(1)}m / {telemetry.roundTripLatencyMin.toFixed(1)}m
+            </span>
+          </div>
 
-            <div className="bg-space-900/90 border border-slate-800/80 px-2.5 py-1 rounded-lg flex items-center gap-1.5 shadow-sm">
-              <Clock className="w-3 h-3 text-mars-500" />
-              <span className="text-mars-500 font-bold">{telemetry.oneWayLatencyMin.toFixed(1)}m</span>
-            </div>
-
-            <div className="bg-space-900/90 border border-slate-800/80 px-2.5 py-1 rounded-lg flex items-center gap-1.5 shadow-sm">
-              <span className="text-slate-500 uppercase text-[9px]">RTT</span>
-              <span className="text-spacegold-400 font-bold">{telemetry.roundTripLatencyMin.toFixed(1)}m</span>
-            </div>
-
-            <div className="bg-space-900/90 border border-slate-800/80 px-2.5 py-1 rounded-lg flex items-center gap-1.5 shadow-sm">
-              <SignalHigh className="w-3 h-3 text-emerald-400" />
-              <span className="text-emerald-400 font-bold">{telemetry.isConjunction ? '0' : telemetry.bandwidthMbps} Mbps</span>
-            </div>
-
-            {/* Mode Toggles */}
-            <div className="flex items-center gap-1 bg-space-900 p-0.5 rounded-lg border border-slate-800/80">
-              <button
-                onClick={() => setSimulationMode('NORMAL')}
-                className={`px-2.5 py-0.5 rounded text-[10px] font-mono transition-all ${
-                  simulationMode === 'NORMAL' ? 'bg-slate-700 text-white font-bold shadow-sm' : 'text-slate-400 hover:text-slate-200'
-                }`}
-              >
-                Normal
-              </button>
-              <button
-                onClick={() => setSimulationMode('CONJUNCTION')}
-                className={`px-2.5 py-0.5 rounded text-[10px] font-mono transition-all ${
-                  simulationMode === 'CONJUNCTION' ? 'bg-amber-600 text-white font-bold shadow-sm' : 'text-slate-400 hover:text-amber-300'
-                }`}
-              >
-                Conjunction
-              </button>
-              <button
-                onClick={() => setSimulationMode('EMERGENCY')}
-                className={`px-2.5 py-0.5 rounded text-[10px] font-mono transition-all ${
-                  simulationMode === 'EMERGENCY' ? 'bg-red-600 text-white font-bold shadow-sm' : 'text-slate-400 hover:text-red-300'
-                }`}
-              >
-                Emergency
-              </button>
-            </div>
+          {/* Link / Conjunction Status */}
+          <div className="flex items-center gap-1.5 bg-space-950 px-2.5 py-1 rounded-lg border border-slate-800">
+            <SignalHigh className={`w-3.5 h-3.5 ${telemetry.isConjunction ? 'text-red-500 animate-ping' : 'text-emerald-400'}`} />
+            <span className="text-slate-500 uppercase">Link:</span>
+            <span className={`font-bold ${telemetry.isConjunction ? 'text-red-400' : 'text-emerald-400'}`}>
+              {telemetry.isConjunction ? 'BLACKOUT (<3.0°)' : 'NORMAL (6 Mbps)'}
+            </span>
           </div>
 
         </div>
 
-        {/* Tab Bar */}
-        <nav className="flex items-center gap-1 mt-2.5 overflow-x-auto pb-0.5 scrollbar-none border-t border-slate-800/60 pt-2">
-          {tabs.map((tab) => {
-            const Icon = tab.icon;
-            const isActive = activeTab === tab.id;
+        {/* Mode Selector & 1-Click Blackout Demo */}
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 bg-space-950 p-1 rounded-lg border border-slate-800">
+            <button
+              onClick={() => setSimulationMode('NORMAL')}
+              className={`px-2.5 py-0.5 rounded text-[10px] font-mono transition-all ${
+                simulationMode === 'NORMAL' ? 'bg-emerald-600 text-white font-bold shadow-sm' : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              Nominal
+            </button>
+            <button
+              onClick={() => setSimulationMode('CONJUNCTION')}
+              className={`px-2.5 py-0.5 rounded text-[10px] font-mono transition-all ${
+                simulationMode === 'CONJUNCTION' ? 'bg-amber-600 text-white font-bold shadow-sm' : 'text-slate-400 hover:text-amber-300'
+              }`}
+            >
+              Conjunction
+            </button>
+          </div>
+
+          <button
+            onClick={() => missionStateService.startBlackoutDemo()}
+            className="px-3 py-1 rounded-lg text-[11px] font-mono bg-gradient-to-r from-mars-500 to-amber-600 text-white font-bold shadow-md hover:from-mars-600 hover:to-amber-700 flex items-center gap-1.5 transition-transform active:scale-95"
+          >
+            <Zap className="w-3.5 h-3.5 text-amber-200" /> Blackout Demo
+          </button>
+        </div>
+
+      </div>
+
+      {/* Primary Navigation Tabs */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <nav className="flex space-x-1 overflow-x-auto py-2 scrollbar-none">
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = activeTab === item.id;
+
             return (
               <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap ${
+                key={item.id}
+                onClick={() => setActiveTab(item.id)}
+                className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-mono transition-all shrink-0 ${
                   isActive
-                    ? 'bg-slate-800 text-white border border-slate-700/80 shadow-sm'
-                    : 'text-slate-400 hover:text-slate-200 hover:bg-space-900/60'
+                    ? 'bg-space-950 text-mars-400 font-bold border border-mars-500/30 shadow-inner'
+                    : 'text-slate-400 hover:text-slate-200 hover:bg-space-950/50'
                 }`}
               >
-                <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-mars-500' : 'text-slate-400'}`} />
-                <span>{tab.label}</span>
+                <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-mars-400' : 'text-slate-500'}`} />
+                <span>{item.label}</span>
               </button>
             );
           })}
         </nav>
-
       </div>
+
     </header>
   );
 };
