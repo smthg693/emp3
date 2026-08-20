@@ -37,4 +37,19 @@ describe('Orbital Physics Service Unit Tests', () => {
     expect(normalState.communicationAvailable).toBe(true);
   });
 
+  it('should correctly format distance to Million km and AU without unit scaling errors', () => {
+    const m0 = calculateEarthMarsDistance(0);
+    const m13 = calculateEarthMarsDistance(13);
+
+    const m0MillionKm = m0.distanceKm / 1e6;
+    const m0Au = m0.distanceKm / AU_TO_KM;
+    expect(m0MillionKm).toBeCloseTo(78.39, 1);
+    expect(m0Au).toBeCloseTo(0.524, 2);
+
+    const m13MillionKm = m13.distanceKm / 1e6;
+    const m13Au = m13.distanceKm / AU_TO_KM;
+    expect(m13MillionKm).toBeCloseTo(377.58, 1);
+    expect(m13Au).toBeCloseTo(2.524, 2);
+  });
+
 });

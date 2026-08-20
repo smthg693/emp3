@@ -41,7 +41,7 @@ export const ResearchCenter: React.FC = () => {
           <button
             onClick={() => setSelectedTopic('NETWORKING')}
             className={`px-3 py-1.5 rounded-lg transition-all ${
-              selectedTopic === 'NETWORKING' ? 'bg-spacegold-500 text-white font-bold' : 'text-slate-400 hover:text-white'
+              selectedTopic === 'NETWORKING' ? 'bg-violet-600 text-white font-bold' : 'text-slate-400 hover:text-white'
             }`}
           >
             DTN Protocol
@@ -69,7 +69,7 @@ export const ResearchCenter: React.FC = () => {
       {selectedTopic === 'PHYSICS' && (
         <div className="space-y-4 font-mono text-xs text-slate-300">
           <div className="bg-space-950 p-5 rounded-xl border border-slate-800 space-y-3">
-            <h4 className="text-sm font-bold text-earth-400 uppercase tracking-wider flex items-center gap-2">
+            <h4 className="text-sm font-bold text-earth-400 uppercase tracking-wider flex items-center gap-2 font-heading">
               <Orbit className="w-4 h-4" /> 1. The Light-Speed Delay Equation (c ≈ 299,792 km/s)
             </h4>
             <p className="leading-relaxed">
@@ -89,7 +89,7 @@ export const ResearchCenter: React.FC = () => {
           </div>
 
           <div className="bg-space-950 p-5 rounded-xl border border-slate-800 space-y-3">
-            <h4 className="text-sm font-bold text-amber-400 uppercase tracking-wider flex items-center gap-2">
+            <h4 className="text-sm font-bold text-amber-400 uppercase tracking-wider flex items-center gap-2 font-heading">
               <Zap className="w-4 h-4" /> 2. Solar Conjunction Blackout Physics
             </h4>
             <p className="leading-relaxed">
@@ -103,7 +103,7 @@ export const ResearchCenter: React.FC = () => {
       {selectedTopic === 'NETWORKING' && (
         <div className="space-y-4 font-mono text-xs text-slate-300">
           <div className="bg-space-950 p-5 rounded-xl border border-slate-800 space-y-3">
-            <h4 className="text-sm font-bold text-spacegold-400 uppercase tracking-wider flex items-center gap-2">
+            <h4 className="text-sm font-bold text-violet-400 uppercase tracking-wider flex items-center gap-2 font-heading">
               <Radio className="w-4 h-4" /> Delay/Disruption Tolerant Networking (DTN - RFC 4838 / BPv7)
             </h4>
             <p className="leading-relaxed">
@@ -128,7 +128,7 @@ export const ResearchCenter: React.FC = () => {
       {selectedTopic === 'AUTONOMY' && (
         <div className="space-y-4 font-mono text-xs text-slate-300">
           <div className="bg-space-950 p-5 rounded-xl border border-slate-800 space-y-3">
-            <h4 className="text-sm font-bold text-mars-500 uppercase tracking-wider flex items-center gap-2">
+            <h4 className="text-sm font-bold text-mars-500 uppercase tracking-wider flex items-center gap-2 font-heading">
               <ShieldCheck className="w-4 h-4" /> Spacecraft Fault Autonomy & Rule Guardrails
             </h4>
             <p className="leading-relaxed">
@@ -136,7 +136,7 @@ export const ResearchCenter: React.FC = () => {
             </p>
 
             <div className="bg-space-900 p-4 rounded-xl border border-slate-800 space-y-2">
-              <strong className="text-spacegold-400 block">The Human-in-the-Loop Constraint Architecture:</strong>
+              <strong className="text-violet-400 block font-heading">The Human-in-the-Loop Constraint Architecture:</strong>
               <p className="text-slate-300">
                 AI algorithms perform real-time situation assessment and propose recovery actions. However, execution is restricted to <strong className="text-white">pre-approved, deterministic mission rules</strong> created and flight-tested by Earth engineering teams before launch.
               </p>

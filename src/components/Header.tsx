@@ -89,9 +89,9 @@ export const Header: React.FC<HeaderProps> = ({
           <div className="flex items-center gap-1.5 bg-space-950 px-2.5 py-1 rounded-lg border border-slate-800">
             <span className="text-slate-500 uppercase">Distance:</span>
             <span className="text-cyan-400 font-bold tabular-nums">
-              {telemetry.distanceKm.toFixed(1)} M km
+              {(telemetry.distanceKm / 1e6).toFixed(1)} M km
             </span>
-            <span className="text-[9px] text-slate-500">({(telemetry.distanceKm / 149.6).toFixed(2)} AU)</span>
+            <span className="text-[9px] text-slate-500">({(telemetry.distanceKm / 149597870.7).toFixed(2)} AU)</span>
           </div>
 
           {/* Latency */}

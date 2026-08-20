@@ -34,7 +34,7 @@ const presetFaults: FaultScenario[] = [
     subsystem: 'Thermal & Power',
     severity: 'CRITICAL',
     anomalyDescription: 'Subsystem 4 temperature exceeded safe operating limit (T > +65°C).',
-    aiAssessment: 'Severe component damage imminent within 4 minutes. Earth RTT delay is min. Earth cannot intervene in time.',
+    aiAssessment: 'Severe component damage imminent within 4 minutes. Earth RTT delay is [RTT]. Earth cannot intervene in time.',
     ruleMatched: 'Rule #TH-092: If T > +65°C, isolation valve 4B auto-trigger pre-approved.',
     autonomousAction: 'Switched primary cooling loop, throttled instrument 2 to standby power.',
   },
@@ -44,7 +44,7 @@ const presetFaults: FaultScenario[] = [
     subsystem: 'Communications',
     severity: 'WARNING',
     anomalyDescription: 'RF signal loss detected due to 1.8° attitude drift during DSN pass.',
-    aiAssessment: 'Telemetry link degradation -14 dB. Next Earth command window in 18 minutes.',
+    aiAssessment: 'Telemetry link degradation -14 dB. Next Earth command window in 18 minutes (Earth RTT: [RTT]).',
     ruleMatched: 'Rule #COM-014: If RF link degraded > 10dB, invoke star-tracker recalibration.',
     autonomousAction: 'Re-aligned High-Gain Antenna using auxiliary star sensor lock.',
   },
@@ -54,7 +54,7 @@ const presetFaults: FaultScenario[] = [
     subsystem: 'Electrical Power (EPS)',
     severity: 'CRITICAL',
     anomalyDescription: 'Bus voltage dropped to 24.2V due to short circuit in science payload 3.',
-    aiAssessment: 'Spacecraft brownout risk within 3 minutes. Emergency isolation required.',
+    aiAssessment: 'Spacecraft brownout risk within 3 minutes (Earth RTT: [RTT]). Emergency isolation required.',
     ruleMatched: 'Rule #EPS-005: If Bus V < 25V, immediately isolate non-essential loads.',
     autonomousAction: 'Tripped solid-state power controller for payload 3. Voltage stabilized at 28.0V.',
   },
@@ -139,11 +139,11 @@ export const AutonomousEmergencyHandler: React.FC<AutonomousEmergencyHandlerProp
       </div>
 
       {/* CORE DESIGN PRINCIPLE BANNER */}
-      <div className="bg-space-950 border border-slate-800 p-3 rounded-xl shadow-inner">
+      <div className="bg-space-950 border border-violet-500/30 p-3 rounded-xl shadow-inner">
         <div className="flex items-start gap-2.5">
-          <Info className="w-4 h-4 text-spacegold-400 shrink-0 mt-0.5" />
+          <Info className="w-4 h-4 text-violet-400 shrink-0 mt-0.5" />
           <div className="text-[11px] font-mono leading-relaxed">
-            <span className="text-spacegold-400 font-bold uppercase tracking-wider block mb-0.5">
+            <span className="text-violet-400 font-bold uppercase tracking-wider block mb-0.5">
               Autonomy Guardrail Architecture:
             </span>
             <span className="text-slate-300">
@@ -211,12 +211,12 @@ export const AutonomousEmergencyHandler: React.FC<AutonomousEmergencyHandlerProp
           <div className="bg-space-900 p-2.5 rounded-lg border border-slate-800/80 space-y-1">
             <span className="text-slate-400 text-[9px] block uppercase">1 & 2. Anomaly & AI Analysis</span>
             <p className="text-slate-300 text-[11px]">{selectedFault.anomalyDescription}</p>
-            <p className="text-amber-400 italic text-[10px]">{selectedFault.aiAssessment.replace('min', `${telemetry.roundTripLatencyMin.toFixed(1)} min`)}</p>
+            <p className="text-amber-400 italic text-[10px]">{selectedFault.aiAssessment.replace('[RTT]', `${telemetry.roundTripLatencyMin.toFixed(1)} min`)}</p>
           </div>
 
           <div className="bg-space-900 p-2.5 rounded-lg border border-slate-800/80 space-y-1">
             <span className="text-slate-400 text-[9px] block uppercase">3 & 4. Matched Rule & Executed Action</span>
-            <p className="text-spacegold-400 font-semibold text-[11px]">{selectedFault.ruleMatched}</p>
+            <p className="text-violet-300 font-semibold text-[11px]">{selectedFault.ruleMatched}</p>
             <p className="text-emerald-400 font-semibold text-[11px]">✓ {selectedFault.autonomousAction}</p>
           </div>
         </div>

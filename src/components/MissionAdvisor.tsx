@@ -28,7 +28,7 @@ export const MissionAdvisor: React.FC<MissionAdvisorProps> = ({ telemetry }) => 
       {/* Header */}
       <div className="flex items-center justify-between border-b border-slate-800 pb-3">
         <div>
-          <span className="text-[11px] font-mono text-spacegold-400 uppercase tracking-wider font-semibold flex items-center gap-1.5">
+          <span className="text-[11px] font-mono text-violet-400 uppercase tracking-wider font-semibold flex items-center gap-1.5">
             <Brain className="w-3.5 h-3.5" /> Feature 04 — TensorFlow.js Explainable AI
           </span>
           <h3 className="text-base font-bold font-heading text-white mt-0.5">
@@ -51,36 +51,45 @@ export const MissionAdvisor: React.FC<MissionAdvisorProps> = ({ telemetry }) => 
             <span className="text-cyan-400 font-bold">Z-Score MSE</span>
           </div>
 
-          <div className="space-y-2">
-            <div className="space-y-1">
-              <div className="flex justify-between text-[11px]">
-                <span className="text-slate-300">Thermal Loop Temperature</span>
-                <span className="text-cyan-400 font-bold tabular-nums">0.015 MSE</span>
-              </div>
-              <div className="w-full h-1.5 bg-space-900 rounded-full overflow-hidden">
-                <div className="h-full bg-cyan-400 rounded-full" style={{ width: '15%' }} />
-              </div>
-            </div>
+          <div className="space-y-2.5">
+            {state.anomalyExplanation?.attributions?.map((attr: any) => {
+              const friendlyName = {
+                temperatureC: 'Thermal Loop Temperature',
+                busVoltageV: 'DC Bus Voltage',
+                rfSignalDb: 'RF Signal Carrier Link',
+                antennaAngleDeg: 'Antenna Gimbal Angle',
+              }[attr.featureName as string] || attr.featureName;
 
-            <div className="space-y-1">
-              <div className="flex justify-between text-[11px]">
-                <span className="text-slate-300">DC Bus Voltage</span>
-                <span className="text-emerald-400 font-bold tabular-nums">0.008 MSE</span>
-              </div>
-              <div className="w-full h-1.5 bg-space-900 rounded-full overflow-hidden">
-                <div className="h-full bg-emerald-400 rounded-full" style={{ width: '8%' }} />
-              </div>
-            </div>
+              const mse = attr.reconstructionError || 0;
+              const barWidth = Math.min(100, Math.max(3, Math.round(Math.min(mse / 1.2, 1) * 100)));
+              const isHigh = mse > 0.1;
+              const isMed = mse > 0.03;
+              const badgeClass = isHigh 
+                ? 'bg-mars-500/10 text-mars-400 border border-mars-500/20' 
+                : isMed 
+                ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' 
+                : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20';
+              const barBgClass = isHigh ? 'bg-mars-500' : isMed ? 'bg-amber-400' : 'bg-emerald-400';
 
-            <div className="space-y-1">
-              <div className="flex justify-between text-[11px]">
-                <span className="text-slate-300">RF Signal Carrier Link</span>
-                <span className="text-spacegold-400 font-bold tabular-nums">0.012 MSE</span>
-              </div>
-              <div className="w-full h-1.5 bg-space-900 rounded-full overflow-hidden">
-                <div className="h-full bg-spacegold-400 rounded-full" style={{ width: '12%' }} />
-              </div>
-            </div>
+              return (
+                <div key={attr.featureName} className="space-y-1">
+                  <div className="flex items-center justify-between text-[11px]">
+                    <span className="text-slate-300 font-medium">{friendlyName}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[9px] text-slate-500 font-mono">(Obs: {attr.observedValue} | Exp: {attr.expectedValue})</span>
+                      <span className={`font-bold tabular-nums text-[10px] px-1.5 py-0.5 rounded ${badgeClass}`}>
+                        {mse.toFixed(4)} MSE
+                      </span>
+                    </div>
+                  </div>
+                  <div className="w-full h-1.5 bg-space-900 rounded-full overflow-hidden">
+                    <div className={`h-full ${barBgClass} rounded-full transition-all duration-500`} style={{ width: `${barWidth}%` }} />
+                  </div>
+                </div>
+              );
+            }) || (
+              <div className="text-slate-500 text-center py-4">No telemetry attribution available</div>
+            )}
           </div>
         </div>
 
@@ -98,7 +107,7 @@ export const MissionAdvisor: React.FC<MissionAdvisorProps> = ({ telemetry }) => 
 
             {latestAction && (
               <div className="bg-space-900 p-2.5 rounded-lg border border-slate-800/80 space-y-1">
-                <span className="text-spacegold-400 font-bold block text-[10px] uppercase">Estimated Operational Effect:</span>
+                <span className="text-violet-400 font-bold block text-[10px] uppercase">Estimated Operational Effect:</span>
                 <span className="text-emerald-400 block font-semibold">{latestAction.estimatedEffect}</span>
               </div>
             )}
@@ -108,10 +117,10 @@ export const MissionAdvisor: React.FC<MissionAdvisorProps> = ({ telemetry }) => 
       </div>
 
       {/* Transparent Labeling Note */}
-      <div className="bg-space-950 p-2.5 rounded-lg border border-slate-800/80 text-[10px] text-slate-400 flex items-center gap-2">
-        <Cpu className="w-3.5 h-3.5 text-spacegold-400 shrink-0" />
+      <div className="bg-space-950 p-2.5 rounded-lg border border-violet-500/30 text-[10px] text-slate-400 flex items-center gap-2">
+        <Cpu className="w-3.5 h-3.5 text-violet-400 shrink-0" />
         <span>
-          <strong>Data Provenance Notice:</strong> Autoencoder model fitted locally on <strong>Synthetic Nominal Spacecraft Telemetry</strong>. No external API keys or serverless dependencies used.
+          <strong className="text-violet-300">Data Provenance Notice:</strong> Autoencoder model fitted locally on <strong>Synthetic Nominal Spacecraft Telemetry</strong>. No external API keys or serverless dependencies used.
         </span>
       </div>
 

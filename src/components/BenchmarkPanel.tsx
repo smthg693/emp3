@@ -15,7 +15,7 @@ export const BenchmarkPanel: React.FC<BenchmarkPanelProps> = ({ state }) => {
   return (
     <div className="bg-space-900 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-4 font-mono text-xs">
       <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-        <div className="flex items-center gap-2 text-spacegold-400 font-bold">
+        <div className="flex items-center gap-2 text-violet-400 font-bold font-heading">
           <BarChart2 className="w-4 h-4" />
           <span className="uppercase tracking-wider">Measured Technical Results & Benchmarks</span>
         </div>
@@ -47,14 +47,14 @@ export const BenchmarkPanel: React.FC<BenchmarkPanelProps> = ({ state }) => {
 
         <div className="bg-space-950 p-3 rounded-xl border border-slate-800">
           <span className="text-[9px] text-slate-400 block uppercase font-bold">Knapsack Value Gain</span>
-          <span className="text-base font-bold text-spacegold-400">+{sc.measuredImprovementPct}%</span>
+          <span className="text-base font-bold text-violet-400">+{sc.measuredImprovementPct}%</span>
           <span className="text-[9px] text-slate-500 block">Single Objective DP</span>
         </div>
       </div>
 
-      <div className="bg-space-950 p-2.5 rounded-lg border border-slate-800/80 text-[10px] text-slate-400 flex flex-wrap items-center justify-between gap-2">
-        <span className="flex items-center gap-1.5 font-bold text-slate-300">
-          <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+      <div className="bg-space-950 p-2.5 rounded-lg border border-violet-500/30 text-[10px] text-slate-400 flex flex-wrap items-center justify-between gap-2">
+        <span className="flex items-center gap-1.5 font-bold text-violet-300">
+          <ShieldCheck className="w-3.5 h-3.5 text-violet-400" />
           Data Provenance:
         </span>
         <span className="text-slate-500">Synthetic ML Evaluation • Simplified Heliocentric Physics • Simulated DTN Queue • Simulated Spacecraft Telemetry</span>

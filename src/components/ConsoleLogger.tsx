@@ -33,7 +33,7 @@ export const ConsoleLogger: React.FC<ConsoleLoggerProps> = ({ telemetry }) => {
         { type: 'AI_EXEC' as const, msg: `[TensorFlow.js ML] Autoencoder checked 4 telemetry vectors. Reconstruction error = 0.0124 (Nominal).` },
         { type: 'INFO' as const, msg: `Telemetry heartbeat ACK received. DSN Carrier Lock SNR: +24.2 dB.` },
         { type: 'DTN' as const, msg: `DTN Bundle #${Math.floor(Math.random() * 900000 + 100000)} verified & forwarded.` },
-        { type: 'SUCCESS' as const, msg: `[Vercel Serverless /api/advisor] OpenRouter LLM guidance fetched cleanly.` },
+        { type: 'SUCCESS' as const, msg: `[Local TF.js Advisor] Onboard explainable AI inference complete.` },
       ];
 
       const chosen = templates[Math.floor(Math.random() * templates.length)];

@@ -30,9 +30,15 @@ export default {
         spacegold: {
           400: '#FBBF24',
           500: '#F59E0B',
+        },
+        information: {
+          400: '#A78BFA',
+          500: '#8B5CF6',
+          glow: 'rgba(167, 139, 250, 0.35)',
         }
       },
       fontFamily: {
+        heading: ['Space Grotesk', 'Inter', 'sans-serif'],
         mono: ['JetBrains Mono', 'Fira Code', 'Courier New', 'monospace'],
         sans: ['Inter', 'system-ui', 'sans-serif'],
       },

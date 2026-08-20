@@ -14,4 +14,15 @@ describe('Scheduler Optimizer Unit Tests', () => {
     expect(comparison.optimizedMissionValue).toBeGreaterThanOrEqual(comparison.baselineMissionValue);
   });
 
+  it('should compute physical pass window capacity B * T / 8 and prove 0/1 DP Knapsack superiority over greedy priority at 450 MB', () => {
+    const bandwidthMbps = 6.0;
+    const windowMinutes = 10;
+    const physicalCapacityMb = (bandwidthMbps * windowMinutes * 60) / 8;
+    expect(physicalCapacityMb).toBe(450);
+
+    const comparison = compareSchedulers(INITIAL_PAYLOADS, physicalCapacityMb);
+    expect(comparison.optimizedMissionValue).toBeGreaterThan(comparison.baselineMissionValue);
+    expect(comparison.measuredImprovementPct).toBeGreaterThan(20);
+  });
+
 });

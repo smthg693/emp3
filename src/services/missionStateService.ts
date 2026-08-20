@@ -16,6 +16,7 @@ class MissionStateService {
   private demoStep: DemoStepId = 'IDLE';
   private operationalState: 'NOMINAL' | 'THERMAL_MITIGATION' | 'POWER_CONSERVATION' | 'ANTENNA_RECOVERY' | 'STABILIZING' | 'STABILIZED' = 'NOMINAL';
 
+  private windowMinutes = 10;
   private isPhysicsDirty = true;
   private isSchedulerDirty = true;
   private lastAnomalyScenario: TelemetryScenario | null = null;
@@ -35,6 +36,17 @@ class MissionStateService {
     this.synodicMonth = month;
     this.isPhysicsDirty = true;
     this.isSchedulerDirty = true;
+  }
+
+  public setWindowMinutes(mins: number): void {
+    this.windowMinutes = mins;
+    this.isSchedulerDirty = true;
+  }
+
+  public getPassWindowCapacityMb(): number {
+    if (!this.cachedPhysics?.communicationAvailable) return 0;
+    const bandwidthMbps = this.cachedPhysics.communicationState === 'DEGRADED' ? 2.0 : 6.0;
+    return (bandwidthMbps * this.windowMinutes * 60) / 8;
   }
 
   public setScenario(sc: TelemetryScenario): void {
@@ -115,13 +127,13 @@ class MissionStateService {
         this.addEvent('SYSTEM', 'Spacecraft telemetry stabilized nominal.', 'DEMO_SPACECRAFT_STABILIZED');
       },
       runDtnOptimizer: () => {
-        const capacityMb = this.cachedPhysics?.communicationAvailable ? 800 : 0;
+        const capacityMb = this.getPassWindowCapacityMb();
         this.cachedScheduler = compareSchedulers(INITIAL_PAYLOADS, capacityMb);
         this.isSchedulerDirty = false;
         this.addEvent('SCHEDULER', 'Ran 0/1 DP Knapsack optimizer on DTN queue.');
       },
       startDtnTransmission: () => {
-        const capacityMb = this.cachedPhysics?.communicationAvailable ? 800 : 0;
+        const capacityMb = this.getPassWindowCapacityMb();
         dtnQueueService.startTransmission(capacityMb);
         this.isSchedulerDirty = true;
         this.addEvent('DTN', 'Critical payload transmitting via DSN downlink.');
@@ -157,7 +169,7 @@ class MissionStateService {
     }
 
     if (this.isSchedulerDirty || !this.cachedScheduler) {
-      const capacityMb = this.cachedPhysics.communicationAvailable ? (this.cachedPhysics.communicationState === 'DEGRADED' ? 200 : 800) : 0;
+      const capacityMb = this.getPassWindowCapacityMb();
       this.cachedScheduler = compareSchedulers(INITIAL_PAYLOADS, capacityMb);
       dtnQueueService.processQueue(this.cachedPhysics.communicationAvailable, capacityMb);
       this.isSchedulerDirty = false;
@@ -178,6 +190,7 @@ class MissionStateService {
       latestAction: this.cachedSafety.action,
       schedulerComparison: this.cachedScheduler,
       benchmarkMetrics,
+      anomalyExplanation: this.cachedAnomaly,
       events: this.events,
     };
   }

@@ -126,5 +126,6 @@ export interface UnifiedMissionState {
   latestAction?: AutonomousAction;
   schedulerComparison?: SchedulerComparison;
   benchmarkMetrics?: BenchmarkMetrics;
+  anomalyExplanation?: any;
   events: MissionEvent[];
 }

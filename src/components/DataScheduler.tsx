@@ -28,8 +28,14 @@ export const DataScheduler: React.FC<DataSchedulerProps> = ({ telemetry }) => {
   const bandwidthMbps = telemetry.isConjunction ? 0 : telemetry.bandwidthMbps;
   const totalCapacityMB = (bandwidthMbps * 60 * windowMinutes) / 8;
 
+  const handleSetWindowMinutes = (mins: number) => {
+    setWindowMinutes(mins);
+    missionStateService.setWindowMinutes(mins);
+  };
+
   const handleRunOptimizer = () => {
     setActiveToast('0/1 DP Knapsack Engine executing transmission schedule optimization...');
+    missionStateService.setWindowMinutes(windowMinutes);
     const controller = missionStateService.createDemoController();
     controller.runDtnOptimizer();
     setTimeout(() => setActiveToast(null), 3000);
@@ -126,7 +132,7 @@ export const DataScheduler: React.FC<DataSchedulerProps> = ({ telemetry }) => {
 
         <div>
           <span className="text-slate-400 block text-[9px] uppercase mb-0.5">Measured Optimizer Gain</span>
-          <span className="text-spacegold-400 font-bold text-sm block tabular-nums">
+          <span className="text-violet-400 font-bold text-sm block tabular-nums">
             +{comparison?.measuredImprovementPct || 0}%
           </span>
         </div>
@@ -189,10 +195,10 @@ export const DataScheduler: React.FC<DataSchedulerProps> = ({ telemetry }) => {
       </div>
 
       {/* NASA DTN Note */}
-      <div className="bg-space-950 p-2.5 rounded-lg border border-slate-800/80 text-[10px] text-slate-400 flex items-center gap-2">
-        <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+      <div className="bg-space-950 p-2.5 rounded-lg border border-violet-500/30 text-[10px] text-slate-400 flex items-center gap-2">
+        <ShieldCheck className="w-3.5 h-3.5 text-violet-400 shrink-0" />
         <span>
-          <strong>NASA Store-and-Forward DTN:</strong> Unsent payloads remain BUFFERED in non-volatile flash memory during solar blackout or link non-contact.
+          <strong className="text-violet-300">NASA Store-and-Forward DTN:</strong> Unsent payloads remain BUFFERED in non-volatile flash memory during solar blackout or link non-contact.
         </span>
       </div>
 
