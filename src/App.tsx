@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { missionStateService } from './services/missionStateService';
 import { TelemetryData } from './types/mission';
 import { Header } from './components/Header';
 import { OrbitalVisualizer } from './components/OrbitalVisualizer';
@@ -9,18 +10,28 @@ import { MissionAdvisor } from './components/MissionAdvisor';
 import { NetworkInfrastructure } from './components/NetworkInfrastructure';
 import { ResearchCenter } from './components/ResearchCenter';
 import { ConsoleLogger } from './components/ConsoleLogger';
+import { BenchmarkPanel } from './components/BenchmarkPanel';
 import { Footer } from './components/Footer';
 
 import { Sparkles, CheckCircle2, ChevronDown, ChevronUp } from 'lucide-react';
 
 export default function App() {
+  const [missionState, setMissionState] = useState(missionStateService.getState());
   const [synodicMonth, setSynodicMonth] = useState<number>(7.0);
   const [simulationMode, setSimulationModeState] = useState<'NORMAL' | 'CONJUNCTION' | 'EMERGENCY'>('NORMAL');
   const [activeTab, setActiveTab] = useState<string>('dashboard');
   const [showConsole, setShowConsole] = useState<boolean>(true);
 
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setMissionState(missionStateService.getState());
+    }, 500);
+    return () => clearInterval(interval);
+  }, []);
+
   const handleSetSimulationMode = (mode: 'NORMAL' | 'CONJUNCTION' | 'EMERGENCY') => {
     setSimulationModeState(mode);
+    missionStateService.setManualMode(mode);
     if (mode === 'CONJUNCTION') {
       setSynodicMonth(13.0);
     } else if (mode === 'NORMAL') {
@@ -28,26 +39,20 @@ export default function App() {
     }
   };
 
-  const isConjunction = simulationMode === 'CONJUNCTION' || (synodicMonth >= 12.2 && synodicMonth <= 13.8);
-  
-  // Calculate distance based on synodic orbit (54.6M km at M0 to 401M km at M13)
-  const orbitRatio = 1 - Math.abs(synodicMonth - 13.0) / 13.0; // 0 at M0/M26, 1 at M13
-  const distanceKm = 54.6 + orbitRatio * (401.0 - 54.6);
-  
-  // Speed of light: 299,792 km/s
-  const oneWayLatencySec = (distanceKm * 1000000) / 299792;
-  const oneWayLatencyMin = oneWayLatencySec / 60.0;
-  const roundTripLatencyMin = oneWayLatencyMin * 2.0;
+  const handleSetSynodicMonth = (month: number) => {
+    setSynodicMonth(month);
+    missionStateService.setSynodicMonth(month);
+  };
 
   const telemetry: TelemetryData = {
-    distanceKm,
-    oneWayLatencySec,
-    oneWayLatencyMin,
-    roundTripLatencyMin,
-    bandwidthMbps: isConjunction ? 0 : 6.0,
-    sunAngleDeg: isConjunction ? 1.5 : 45.0,
-    isConjunction,
-    synodicMonth,
+    distanceKm: missionState.orbital.distanceKm,
+    oneWayLatencySec: missionState.orbital.oneWayLatencyMin * 60,
+    oneWayLatencyMin: missionState.orbital.oneWayLatencyMin,
+    roundTripLatencyMin: missionState.orbital.roundTripLatencyMin,
+    bandwidthMbps: missionState.orbital.communicationAvailable ? 6.0 : 0,
+    sunAngleDeg: missionState.orbital.sunAngleDeg,
+    isConjunction: !missionState.orbital.communicationAvailable,
+    synodicMonth: missionState.synodicMonth,
   };
 
   return (
@@ -82,15 +87,18 @@ export default function App() {
                   An intelligent scheduling and autonomous decision support system for the Earth–Mars link handling 3 to 22 minute signal latency and 13-day solar blackout periods.
                 </p>
                 <div className="flex flex-wrap gap-3 pt-1 font-mono text-[11px] text-slate-400">
-                  <span className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" /> Orbital Latency AI</span>
-                  <span className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" /> Queue Optimizer</span>
-                  <span className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" /> Fault Autonomy</span>
+                  <span className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" /> Heliocentric Physics</span>
+                  <span className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" /> 0/1 DP Knapsack</span>
+                  <span className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" /> Safety Policy Engine</span>
                 </div>
               </div>
             </div>
 
+            {/* Benchmark Metrics Panel */}
+            <BenchmarkPanel state={missionState} />
+
             {/* Orbit Map Visualizer */}
-            <OrbitalVisualizer telemetry={telemetry} setSynodicMonth={setSynodicMonth} />
+            <OrbitalVisualizer telemetry={telemetry} setSynodicMonth={handleSetSynodicMonth} />
 
             {/* Feature Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
@@ -107,7 +115,7 @@ export default function App() {
         {/* Tab 2: ORBITAL & LATENCY AI */}
         {activeTab === 'orbital' && (
           <div className="space-y-6 transition-all duration-300">
-            <OrbitalVisualizer telemetry={telemetry} setSynodicMonth={setSynodicMonth} />
+            <OrbitalVisualizer telemetry={telemetry} setSynodicMonth={handleSetSynodicMonth} />
             <LatencyPredictionChart telemetry={telemetry} />
           </div>
         )}

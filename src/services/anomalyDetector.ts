@@ -220,6 +220,8 @@ export class LocalExplainableAiDetector {
   private model: tf.LayersModel | null = null;
   public isTrained = false;
   public isTraining = false;
+  public isLoadedFromStorage = false;
+  public initializationSource: 'STORAGE' | 'TRAINED' | null = null;
   public status: DetectorStatus = 'INITIALIZING';
   public initPromise: Promise<void>;
 
@@ -251,6 +253,8 @@ export class LocalExplainableAiDetector {
         this.model = loadedModel;
         this.thresholds = parsedThresholds;
         this.isTrained = true;
+        this.isLoadedFromStorage = true;
+        this.initializationSource = 'STORAGE';
         this.status = 'READY';
         console.log('✓ Successfully loaded model and validated thresholds from localStorage.');
         return;
@@ -330,6 +334,7 @@ export class LocalExplainableAiDetector {
 
       this.model = autoencoder;
       this.isTrained = true;
+      this.initializationSource = 'TRAINED';
       this.status = 'READY';
 
       // Save model and thresholds to localStorage together
