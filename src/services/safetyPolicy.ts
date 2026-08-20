@@ -34,6 +34,8 @@ const PRE_APPROVED_SAFETY_RULES: Record<string, {
   },
 };
 
+export const ACTION_SEVERITY_THRESHOLD = 0.45;
+
 export function evaluateSafetyPolicy(anomaly: ExplanationOutput): SafetyValidationResult {
   if (anomaly.riskLevel === 'LOW') {
     return {
@@ -42,8 +44,23 @@ export function evaluateSafetyPolicy(anomaly: ExplanationOutput): SafetyValidati
     };
   }
 
+  if (anomaly.severityScore < ACTION_SEVERITY_THRESHOLD && !anomaly.hardLimitBreached.breached) {
+    return {
+      approved: false,
+      policyRationale: `✕ REJECTED: Anomaly severity score (${anomaly.severityScore}) is below autonomous action threshold (${ACTION_SEVERITY_THRESHOLD}). Monitoring parameter.`,
+    };
+  }
+
   const primaryFeature = anomaly.hardLimitBreached.feature || anomaly.topDeviatedFeature;
-  const mappedRule = PRE_APPROVED_SAFETY_RULES[primaryFeature] || PRE_APPROVED_SAFETY_RULES.temperatureC;
+  const mappedRule = PRE_APPROVED_SAFETY_RULES[primaryFeature];
+
+  if (!mappedRule) {
+    return {
+      approved: false,
+      policyRationale: `✕ REJECTED: No pre-approved flight safety rule exists for subsystem ${primaryFeature}. Autonomous response deferred to Earth ground control.`,
+    };
+  }
+
   const now = Date.now();
 
   const action: AutonomousAction = {

@@ -16,7 +16,9 @@ class MissionStateService {
   private demoStep: DemoStepId = 'IDLE';
   private operationalState: 'NOMINAL' | 'THERMAL_MITIGATION' | 'POWER_CONSERVATION' | 'ANTENNA_RECOVERY' | 'STABILIZING' | 'STABILIZED' = 'NOMINAL';
 
-  private isDirty = true;
+  private isPhysicsDirty = true;
+  private isSchedulerDirty = true;
+  private lastAnomalyScenario: TelemetryScenario | null = null;
   private cachedPhysics: PhysicsState | null = null;
   private cachedAnomaly: ExplanationOutput | null = null;
   private cachedSafety: SafetyValidationResult | null = null;
@@ -31,20 +33,21 @@ class MissionStateService {
 
   public setSynodicMonth(month: number): void {
     this.synodicMonth = month;
-    this.isDirty = true;
+    this.isPhysicsDirty = true;
+    this.isSchedulerDirty = true;
   }
 
   public setScenario(sc: TelemetryScenario): void {
     this.scenario = sc;
     this.addEvent('ANOMALY', `Telemetry scenario updated to ${sc}.`);
-    this.isDirty = true;
   }
 
   public setManualMode(mode: 'NORMAL' | 'CONJUNCTION' | 'EMERGENCY'): void {
     this.manualMode = mode;
     if (mode === 'CONJUNCTION') this.synodicMonth = 13.0;
     this.addEvent('PHYSICS', `Simulation mode set to ${mode}.`);
-    this.isDirty = true;
+    this.isPhysicsDirty = true;
+    this.isSchedulerDirty = true;
   }
 
   public addEvent(category: MissionEvent['category'], message: string, details?: string): void {
@@ -63,7 +66,7 @@ class MissionStateService {
   public executeLocalAction(decision?: SafetyValidationResult): void {
     const currentDecision = decision || this.cachedSafety;
     if (!currentDecision || !currentDecision.approved || !currentDecision.action) {
-      this.addEvent('SAFETY', 'Safety policy evaluation REJECTED or invalid. Action not executed.', currentDecision?.policyRationale);
+      this.addEvent('SAFETY', 'Safety policy evaluation REJECTED. Action not executed.', currentDecision?.policyRationale);
       return;
     }
 
@@ -74,13 +77,12 @@ class MissionStateService {
       this.operationalState = 'THERMAL_MITIGATION';
     } else if (triggeredBy === 'busVoltageV') {
       this.operationalState = 'POWER_CONSERVATION';
-    } else {
+    } else if (triggeredBy === 'rfSignalDb' || triggeredBy === 'antennaAngleDeg') {
       this.operationalState = 'ANTENNA_RECOVERY';
     }
 
     this.cachedSafety = currentDecision;
     this.addEvent('SAFETY', `Executed autonomous safety rule (${currentAction.actionId}).`, 'DEMO_ACTION_EXECUTED');
-    this.isDirty = true;
   }
 
   public createDemoController(): DemoStateController {
@@ -88,12 +90,21 @@ class MissionStateService {
       setManualMode: (m) => this.setManualMode(m),
       setScenario: (s) => this.setScenario(s),
       addEvent: (c, msg, details) => this.addEvent(c, msg, details),
-      runSafetyValidation: () => {
+      runAnomalyDetection: () => {
         const telemetry = generateTelemetry(this.scenario);
-        const freshAnomaly = localAiDetector.analyze(telemetry);
-        this.cachedAnomaly = freshAnomaly;
-        this.cachedSafety = evaluateSafetyPolicy(freshAnomaly);
-        this.addEvent('SAFETY', 'Evaluated safety policy for detected anomaly.', 'DEMO_SAFETY_VALIDATED');
+        this.cachedAnomaly = localAiDetector.analyze(telemetry);
+        this.cachedSafety = evaluateSafetyPolicy(this.cachedAnomaly);
+        this.lastAnomalyScenario = this.scenario;
+        this.addEvent('ANOMALY', `TF.js Autoencoder detected anomaly in ${this.cachedAnomaly.topDeviatedFeature} (${this.cachedAnomaly.riskLevel} risk).`, 'DEMO_ANOMALY_DETECTED');
+      },
+      runSafetyValidation: () => {
+        if (!this.cachedAnomaly || this.lastAnomalyScenario !== this.scenario) {
+          const telemetry = generateTelemetry(this.scenario);
+          this.cachedAnomaly = localAiDetector.analyze(telemetry);
+          this.lastAnomalyScenario = this.scenario;
+        }
+        this.cachedSafety = evaluateSafetyPolicy(this.cachedAnomaly);
+        this.addEvent('SAFETY', `Evaluated safety policy: ${this.cachedSafety.policyRationale}`, 'DEMO_SAFETY_VALIDATED');
       },
       executeLocalAction: () => {
         this.executeLocalAction();
@@ -106,20 +117,18 @@ class MissionStateService {
       runDtnOptimizer: () => {
         const capacityMb = this.cachedPhysics?.communicationAvailable ? 800 : 0;
         this.cachedScheduler = compareSchedulers(INITIAL_PAYLOADS, capacityMb);
+        this.isSchedulerDirty = false;
         this.addEvent('SCHEDULER', 'Ran 0/1 DP Knapsack optimizer on DTN queue.');
       },
       startDtnTransmission: () => {
-        const queue = dtnQueueService.getQueue();
-        if (queue.length > 0) {
-          queue[0].status = 'TRANSMITTING';
-        }
+        const capacityMb = this.cachedPhysics?.communicationAvailable ? 800 : 0;
+        dtnQueueService.startTransmission(capacityMb);
+        this.isSchedulerDirty = true;
         this.addEvent('DTN', 'Critical payload transmitting via DSN downlink.');
       },
       confirmEarthDelivery: () => {
-        const queue = dtnQueueService.getQueue();
-        if (queue.length > 0) {
-          queue[0].status = 'DELIVERED';
-        }
+        dtnQueueService.confirmDelivery();
+        this.isSchedulerDirty = true;
         this.addEvent('DTN', 'Emergency payload delivered to Earth DSN.');
       },
     };
@@ -130,27 +139,34 @@ class MissionStateService {
     const controller = this.createDemoController();
     demoScenarioService.startDemo(controller, (stepId) => {
       this.demoStep = stepId;
-      this.isDirty = true;
     });
   }
 
   public getState(): UnifiedMissionState {
-    if (this.isDirty || !this.cachedPhysics || !this.cachedAnomaly || !this.cachedSafety || !this.cachedScheduler) {
+    if (this.isPhysicsDirty || !this.cachedPhysics) {
       this.cachedPhysics = getPhysicsState(this.synodicMonth, this.manualMode);
+      this.isPhysicsDirty = false;
+      this.isSchedulerDirty = true;
+    }
+
+    if (!this.cachedAnomaly || this.lastAnomalyScenario !== this.scenario) {
       const telemetry = generateTelemetry(this.scenario);
       this.cachedAnomaly = localAiDetector.analyze(telemetry);
       this.cachedSafety = evaluateSafetyPolicy(this.cachedAnomaly);
+      this.lastAnomalyScenario = this.scenario;
+    }
 
+    if (this.isSchedulerDirty || !this.cachedScheduler) {
       const capacityMb = this.cachedPhysics.communicationAvailable ? (this.cachedPhysics.communicationState === 'DEGRADED' ? 200 : 800) : 0;
       this.cachedScheduler = compareSchedulers(INITIAL_PAYLOADS, capacityMb);
       dtnQueueService.processQueue(this.cachedPhysics.communicationAvailable, capacityMb);
-      this.isDirty = false;
+      this.isSchedulerDirty = false;
     }
 
     const benchmarkMetrics = getBenchmarkMetrics(this.synodicMonth, this.events);
 
     return {
-      missionTimeSec: Math.floor(Date.now() / 1000), // Lightweight clock tick
+      missionTimeSec: Math.floor(Date.now() / 1000),
       synodicMonth: this.synodicMonth,
       isDemoActive: this.demoStep !== 'IDLE' && this.demoStep !== 'DEMO_COMPLETE',
       demoStep: this.demoStep,
