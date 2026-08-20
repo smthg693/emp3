@@ -30,9 +30,11 @@ export default function App() {
 
   const isConjunction = simulationMode === 'CONJUNCTION' || (synodicMonth >= 12.2 && synodicMonth <= 13.8);
   
-  const normalizedOrbit = 1 - Math.abs(synodicMonth - 13.0) / 13.0;
-  const distanceKm = 54.6 + normalizedOrbit * (401.0 - 54.6);
+  // Calculate distance based on synodic orbit (54.6M km at M0 to 401M km at M13)
+  const orbitRatio = 1 - Math.abs(synodicMonth - 13.0) / 13.0; // 0 at M0/M26, 1 at M13
+  const distanceKm = 54.6 + orbitRatio * (401.0 - 54.6);
   
+  // Speed of light: 299,792 km/s
   const oneWayLatencySec = (distanceKm * 1000000) / 299792;
   const oneWayLatencyMin = oneWayLatencySec / 60.0;
   const roundTripLatencyMin = oneWayLatencyMin * 2.0;
